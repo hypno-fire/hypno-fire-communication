@@ -17,11 +17,15 @@ HEADERS += \
     client.h \
     $$PWD/../messages/messages.pb.h \
     $$PWD/../messages/nanopdb/pb.h \
-    $$PWD/../messages/nanopdb/pb-encode.h \
+    $$PWD/../messages/nanopdb/pb_common.h \
+    $$PWD/../messages/nanopdb/pb_encode.h \
+    $$PWD/Encoding/COBS.h \
     test.h
 
 SOURCES += \
     $$PWD/../messages/messages.pb.c \
+    $$PWD/../messages/nanopdb/pb_common.c \
+    $$PWD/../messages/nanopdb/pb_encode.c \
     client.cpp \
     test.cpp
 

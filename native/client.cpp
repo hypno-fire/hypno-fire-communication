@@ -4,8 +4,11 @@
 #include <string.h>
 #include <pb_encode.h>
 #include "messages.pb.h"
+#include "Encoding/COBS.h"
 
 sp_return check(enum sp_return result);
+
+int sendMessage(SessionContainer* container, HypnoMessage* message);
 
 extern "C" {
 
@@ -41,38 +44,87 @@ void destroySession(SessionContainer* container) {
 }
 
 int sendPulse(SessionContainer* container) {
+    HypnoMessage message = HypnoMessage_init_default;
     Pulse pulse = Pulse_init_default;
-    uint8_t buffer[500];
-    pb_ostream_t stream = pb_ostream_from_buffer(&buffer[0], sizeof(buffer));
-    if(!pb_encode(&stream, Pulse_fields, &pulse)) {
-        return -1;
-    }
+    message.message.pulse = pulse;
+    message.which_message = HypnoMessage_pulse_tag;
 
-    if(sp_blocking_write(container->port, buffer, stream.bytes_written, 1000) != (int)stream.bytes_written) {
-        return -1;
-    }
+    return sendMessage(container, &message);
+}
+
+int sendReset(SessionContainer* container)
+{
+    HypnoMessage message = HypnoMessage_init_default;
+    Reset reset = Reset_init_default;
+    message.message.reset = reset;
+    message.which_message = HypnoMessage_reset_tag;
+
+    return sendMessage(container, &message);
+}
+
+int sendSolidColor(SessionContainer* container, int layer, int key, int color, int durationTicks, int fadInTicks, int fadOutTicks)
+{
+    HypnoMessage message = HypnoMessage_init_default;
+    message.message.solid_color = SolidColor_init_default;
+    message.which_message = HypnoMessage_solid_color_tag;
+
+    message.message.solid_color.layer = layer;
+    message.message.solid_color.key = key;
+    message.message.solid_color.color = color;
+    message.message.solid_color.duration_ticks = durationTicks;
+    message.message.solid_color.fad_in_ticks = fadInTicks;
+    message.message.solid_color.fad_out_ticks = fadOutTicks;
+
+    return sendMessage(container, &message);
 }
 
 }
 
 sp_return check(enum sp_return result)
 {
-        /* For this example we'll just exit on any error by calling abort(). */
-        char *error_message;
+    char *error_message;
+    switch (result) {
+    case SP_ERR_ARG:
+        printf("Error: Invalid argument.\n");
+        break;
+    case SP_ERR_FAIL:
+        error_message = sp_last_error_message();
+        printf("Error: Failed: %s\n", error_message);
+        sp_free_error_message(error_message);
+        break;
+    case SP_ERR_SUPP:
+        printf("Error: Not supported.\n");
+        break;
+    case SP_ERR_MEM:
+        printf("Error: Couldn't allocate memory.\n");
+        break;
+    case SP_OK:
+    default:
+        return result;
+    }
+    return result;
+}
 
-        switch (result) {
-        case SP_ERR_ARG:
-                printf("Error: Invalid argument.\n");
-        case SP_ERR_FAIL:
-                error_message = sp_last_error_message();
-                printf("Error: Failed: %s\n", error_message);
-                sp_free_error_message(error_message);
-        case SP_ERR_SUPP:
-                printf("Error: Not supported.\n");
-        case SP_ERR_MEM:
-                printf("Error: Couldn't allocate memory.\n");
-        case SP_OK:
-        default:
-                return result;
-        }
+int sendMessage(SessionContainer* container, HypnoMessage* message)
+{
+    uint8_t buffer[500];
+    pb_ostream_t stream = pb_ostream_from_buffer(&buffer[0], sizeof(buffer));
+
+    if(!pb_encode(&stream, HypnoMessage_fields, message)) {
+        return -1;
+    }
+
+    uint8_t encodedBuffer[COBS::getEncodedBufferSize(stream.bytes_written)];
+    size_t numEncoded = COBS::encode(buffer, stream.bytes_written, encodedBuffer);
+
+    if(sp_blocking_write(container->port, encodedBuffer, numEncoded, 1000) != SP_OK) {
+        return -1;
+    }
+
+    encodedBuffer[0] = 0;
+    if(check(sp_blocking_write(container->port, encodedBuffer, 1, 1000)) != SP_OK) {
+        return -1;
+    }
+
+    return 0;
 }
