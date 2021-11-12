@@ -44,14 +44,15 @@ void destroySession(SessionContainer* container) {
 }
 
 int sendPulse(SessionContainer* container, int universe, int layer, int key, int color, int fadeInTicks, int durationTicks, int fadeOutTicks) {
-    HypnoMessage message = HypnoMessage_init_default;
-    Pulse pulse = Pulse_init_default;
+    HypnoMessage message = HypnoMessage_init_zero;
+    Pulse pulse = Pulse_init_zero;
 
     pulse.universe = universe;
     pulse.layer = layer;
     pulse.key = key;
     pulse.color = color;
     pulse.fade_in_ticks = fadeInTicks;
+    pulse.duration_ticks = durationTicks;
     pulse.fade_out_ticks = fadeOutTicks;
 
     message.message.pulse = pulse;
@@ -62,10 +63,10 @@ int sendPulse(SessionContainer* container, int universe, int layer, int key, int
 
 int sendReset(SessionContainer* container)
 {
-    HypnoMessage message = HypnoMessage_init_default;
-    Reset reset = Reset_init_default;
-    message.message.reset = reset;
+    HypnoMessage message = HypnoMessage_init_zero;
+    Reset reset = Reset_init_zero;
     message.which_message = HypnoMessage_reset_tag;
+    message.message.reset = reset;
 
     return sendMessage(container, &message);
 }
@@ -109,12 +110,12 @@ int sendMessage(SessionContainer* container, HypnoMessage* message)
     uint8_t encodedBuffer[COBS::getEncodedBufferSize(stream.bytes_written)];
     size_t numEncoded = COBS::encode(buffer, stream.bytes_written, encodedBuffer);
 
-    if(sp_blocking_write(container->port, encodedBuffer, numEncoded, 1000) != SP_OK) {
+    if(check(sp_blocking_write(container->port, encodedBuffer, numEncoded, 1000)) < 0) {
         return -1;
     }
 
     encodedBuffer[0] = 0;
-    if(check(sp_blocking_write(container->port, encodedBuffer, 1, 1000)) != SP_OK) {
+    if(check(sp_blocking_write(container->port, encodedBuffer, 1, 1000)) <= SP_OK) {
         return -1;
     }
 
