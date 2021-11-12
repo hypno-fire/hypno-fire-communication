@@ -11,9 +11,7 @@ namespace HynoFireComs
         [DllImport("HypnoFireComs")]
         public static extern void destroySession(IntPtr container);
         [DllImport("HypnoFireComs")]
-        public static extern int sendPulse(IntPtr container);
-        [DllImport("HypnoFireComs")]
-        public static extern int sendSolidColor(IntPtr container, int layer, int key, int color, int durationTicks, int fadInTicks, int fadOutTicks);
+        public static extern int sendPulse(IntPtr container, int universe, int layer, int key, int color, int fadeInTicks, int durationTicks, int fadeOutTicks);
     }
     
     class Program
@@ -41,7 +39,7 @@ namespace HynoFireComs
             while (true)
             {
                 flip = !flip;
-                HypnoFireComsInvoke.sendSolidColor(container, 0, 0, flip ? DarkBlue : DarkRed, 20, 0, 0);
+                HypnoFireComsInvoke.sendPulse(container, 0, 0, 0, flip ? DarkBlue : DarkRed, 20, 0, 0);
                 Thread.Sleep(1000);
             }
 

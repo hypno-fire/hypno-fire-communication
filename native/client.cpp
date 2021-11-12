@@ -43,9 +43,17 @@ void destroySession(SessionContainer* container) {
     delete container;
 }
 
-int sendPulse(SessionContainer* container) {
+int sendPulse(SessionContainer* container, int universe, int layer, int key, int color, int fadeInTicks, int durationTicks, int fadeOutTicks) {
     HypnoMessage message = HypnoMessage_init_default;
     Pulse pulse = Pulse_init_default;
+
+    pulse.universe = universe;
+    pulse.layer = layer;
+    pulse.key = key;
+    pulse.color = color;
+    pulse.fade_in_ticks = fadeInTicks;
+    pulse.fade_out_ticks = fadeOutTicks;
+
     message.message.pulse = pulse;
     message.which_message = HypnoMessage_pulse_tag;
 
@@ -58,22 +66,6 @@ int sendReset(SessionContainer* container)
     Reset reset = Reset_init_default;
     message.message.reset = reset;
     message.which_message = HypnoMessage_reset_tag;
-
-    return sendMessage(container, &message);
-}
-
-int sendSolidColor(SessionContainer* container, int layer, int key, int color, int durationTicks, int fadInTicks, int fadOutTicks)
-{
-    HypnoMessage message = HypnoMessage_init_default;
-    message.message.solid_color = SolidColor_init_default;
-    message.which_message = HypnoMessage_solid_color_tag;
-
-    message.message.solid_color.layer = layer;
-    message.message.solid_color.key = key;
-    message.message.solid_color.color = color;
-    message.message.solid_color.duration_ticks = durationTicks;
-    message.message.solid_color.fad_in_ticks = fadInTicks;
-    message.message.solid_color.fad_out_ticks = fadOutTicks;
 
     return sendMessage(container, &message);
 }
