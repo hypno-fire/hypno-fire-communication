@@ -9,44 +9,80 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
+/* Enum definitions */
+/* The type of layer brush to do when overlaying. */
+typedef enum _LayerBrush { 
+    LayerBrush_ADD = 0, 
+    LayerBrush_SUBTRACT = 1, 
+    LayerBrush_OVERWRITE = 2, 
+    LayerBrush_OVERLAY = 3, 
+    LayerBrush_COMBINE = 4, 
+    LayerBrush_MASK = 5 
+} LayerBrush;
+
 /* Struct definitions */
+/* No-op, just makes sure the server is listening. */
+typedef struct _Prime { 
+    char dummy_field;
+} Prime;
+
 /* Reset all the layers/animations/etc. */
 typedef struct _Reset { 
     char dummy_field;
 } Reset;
 
+/* A message used to configure the universes. */
+typedef struct _UniverseConfiguration { 
+    pb_callback_t universes; 
+} UniverseConfiguration;
+
+/* Configure a layer. */
+typedef struct _LayerConfiguration { 
+    int32_t layer_number; 
+    bool has_layer_brush;
+    LayerBrush layer_brush; 
+} LayerConfiguration;
+
 /* Represents */
 typedef struct _Pulse { 
     /* The area that this effect will be played on. */
-    bool has_universe;
     int32_t universe; 
     /* The layer that perform this animation. */
-    bool has_layer;
     int32_t layer; 
     /* The unique key for this animation. */
-    bool has_key;
     int32_t key; 
     /* the color (RGB) to show. */
-    bool has_color;
     int32_t color; 
     /* Number of ticks to slowly fade into the max value of the pulse. */
-    bool has_fade_in_ticks;
     int32_t fade_in_ticks; 
     /* The total number of ticks to display the full pulse. */
-    bool has_duration_ticks;
     int32_t duration_ticks; 
     /* Number of ticks to slowly fade out to nothing. */
-    bool has_fade_out_ticks;
     int32_t fade_out_ticks; 
 } Pulse;
+
+/* A single universe, and where it's start/stop LED is. */
+typedef struct _Universe { 
+    int32_t start_led; 
+    int32_t stop_led; 
+} Universe;
 
 typedef struct _HypnoMessage { 
     pb_size_t which_message;
     union {
         Reset reset;
+        Prime prime;
+        LayerConfiguration layer_configuration;
+        UniverseConfiguration universe_configuration;
         Pulse pulse;
     } message; 
 } HypnoMessage;
+
+
+/* Helper constants for enums */
+#define _LayerBrush_MIN LayerBrush_ADD
+#define _LayerBrush_MAX LayerBrush_MASK
+#define _LayerBrush_ARRAYSIZE ((LayerBrush)(LayerBrush_MASK+1))
 
 
 #ifdef __cplusplus
@@ -55,13 +91,24 @@ extern "C" {
 
 /* Initializer values for message structs */
 #define HypnoMessage_init_default                {0, {Reset_init_default}}
+#define Prime_init_default                       {0}
 #define Reset_init_default                       {0}
-#define Pulse_init_default                       {false, 0, false, 0, false, 0, false, 0, false, 0, false, 0, false, 0}
+#define Universe_init_default                    {0, 0}
+#define UniverseConfiguration_init_default       {{{NULL}, NULL}}
+#define LayerConfiguration_init_default          {0, false, _LayerBrush_MIN}
+#define Pulse_init_default                       {0, 0, 0, 0, 0, 0, 0}
 #define HypnoMessage_init_zero                   {0, {Reset_init_zero}}
+#define Prime_init_zero                          {0}
 #define Reset_init_zero                          {0}
-#define Pulse_init_zero                          {false, 0, false, 0, false, 0, false, 0, false, 0, false, 0, false, 0}
+#define Universe_init_zero                       {0, 0}
+#define UniverseConfiguration_init_zero          {{{NULL}, NULL}}
+#define LayerConfiguration_init_zero             {0, false, _LayerBrush_MIN}
+#define Pulse_init_zero                          {0, 0, 0, 0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
+#define UniverseConfiguration_universes_tag      2
+#define LayerConfiguration_layer_number_tag      1
+#define LayerConfiguration_layer_brush_tag       2
 #define Pulse_universe_tag                       1
 #define Pulse_layer_tag                          2
 #define Pulse_key_tag                            3
@@ -69,47 +116,93 @@ extern "C" {
 #define Pulse_fade_in_ticks_tag                  5
 #define Pulse_duration_ticks_tag                 6
 #define Pulse_fade_out_ticks_tag                 7
+#define Universe_start_led_tag                   1
+#define Universe_stop_led_tag                    2
 #define HypnoMessage_reset_tag                   1
-#define HypnoMessage_pulse_tag                   2
+#define HypnoMessage_prime_tag                   2
+#define HypnoMessage_layer_configuration_tag     3
+#define HypnoMessage_universe_configuration_tag  4
+#define HypnoMessage_pulse_tag                   5
 
 /* Struct field encoding specification for nanopb */
 #define HypnoMessage_FIELDLIST(X, a) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (message,reset,message.reset),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,pulse,message.pulse),   2)
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,prime,message.prime),   2) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,layer_configuration,message.layer_configuration),   3) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,universe_configuration,message.universe_configuration),   4) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,pulse,message.pulse),   5)
 #define HypnoMessage_CALLBACK NULL
 #define HypnoMessage_DEFAULT NULL
 #define HypnoMessage_message_reset_MSGTYPE Reset
+#define HypnoMessage_message_prime_MSGTYPE Prime
+#define HypnoMessage_message_layer_configuration_MSGTYPE LayerConfiguration
+#define HypnoMessage_message_universe_configuration_MSGTYPE UniverseConfiguration
 #define HypnoMessage_message_pulse_MSGTYPE Pulse
+
+#define Prime_FIELDLIST(X, a) \
+
+#define Prime_CALLBACK NULL
+#define Prime_DEFAULT NULL
 
 #define Reset_FIELDLIST(X, a) \
 
 #define Reset_CALLBACK NULL
 #define Reset_DEFAULT NULL
 
+#define Universe_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, INT32,    start_led,         1) \
+X(a, STATIC,   REQUIRED, INT32,    stop_led,          2)
+#define Universe_CALLBACK NULL
+#define Universe_DEFAULT NULL
+
+#define UniverseConfiguration_FIELDLIST(X, a) \
+X(a, CALLBACK, REPEATED, MESSAGE,  universes,         2)
+#define UniverseConfiguration_CALLBACK pb_default_field_callback
+#define UniverseConfiguration_DEFAULT NULL
+#define UniverseConfiguration_universes_MSGTYPE Universe
+
+#define LayerConfiguration_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, INT32,    layer_number,      1) \
+X(a, STATIC,   OPTIONAL, UENUM,    layer_brush,       2)
+#define LayerConfiguration_CALLBACK NULL
+#define LayerConfiguration_DEFAULT NULL
+
 #define Pulse_FIELDLIST(X, a) \
-X(a, STATIC,   OPTIONAL, INT32,    universe,          1) \
-X(a, STATIC,   OPTIONAL, INT32,    layer,             2) \
-X(a, STATIC,   OPTIONAL, INT32,    key,               3) \
-X(a, STATIC,   OPTIONAL, INT32,    color,             4) \
-X(a, STATIC,   OPTIONAL, INT32,    fade_in_ticks,     5) \
-X(a, STATIC,   OPTIONAL, INT32,    duration_ticks,    6) \
-X(a, STATIC,   OPTIONAL, INT32,    fade_out_ticks,    7)
+X(a, STATIC,   REQUIRED, INT32,    universe,          1) \
+X(a, STATIC,   REQUIRED, INT32,    layer,             2) \
+X(a, STATIC,   REQUIRED, INT32,    key,               3) \
+X(a, STATIC,   REQUIRED, INT32,    color,             4) \
+X(a, STATIC,   REQUIRED, INT32,    fade_in_ticks,     5) \
+X(a, STATIC,   REQUIRED, INT32,    duration_ticks,    6) \
+X(a, STATIC,   REQUIRED, INT32,    fade_out_ticks,    7)
 #define Pulse_CALLBACK NULL
 #define Pulse_DEFAULT NULL
 
 extern const pb_msgdesc_t HypnoMessage_msg;
+extern const pb_msgdesc_t Prime_msg;
 extern const pb_msgdesc_t Reset_msg;
+extern const pb_msgdesc_t Universe_msg;
+extern const pb_msgdesc_t UniverseConfiguration_msg;
+extern const pb_msgdesc_t LayerConfiguration_msg;
 extern const pb_msgdesc_t Pulse_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define HypnoMessage_fields &HypnoMessage_msg
+#define Prime_fields &Prime_msg
 #define Reset_fields &Reset_msg
+#define Universe_fields &Universe_msg
+#define UniverseConfiguration_fields &UniverseConfiguration_msg
+#define LayerConfiguration_fields &LayerConfiguration_msg
 #define Pulse_fields &Pulse_msg
 
 /* Maximum encoded size of messages (where known) */
-#define HypnoMessage_size                        79
+/* HypnoMessage_size depends on runtime parameters */
+/* UniverseConfiguration_size depends on runtime parameters */
+#define LayerConfiguration_size                  13
+#define Prime_size                               0
 #define Pulse_size                               77
 #define Reset_size                               0
+#define Universe_size                            22
 
 #ifdef __cplusplus
 } /* extern "C" */

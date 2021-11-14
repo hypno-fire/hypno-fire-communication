@@ -6,12 +6,27 @@ namespace HynoFireComs
 {
     public class HypnoFireComsInvoke
     {
+        public enum LayerBrush : int
+        {
+            Add = 0,
+            Subtract = 1,
+            Overwrite = 2,
+            Overlay = 3,
+            Combine = 4,
+            Mask = 5
+        }
         [DllImport("HypnoFireComs")]
         public static extern int createSerialSession([MarshalAs(UnmanagedType.LPStr)]string devicePath, uint baudRate, ref IntPtr container);
         [DllImport("HypnoFireComs")]
         public static extern void destroySession(IntPtr container);
         [DllImport("HypnoFireComs")]
+        public static extern int sendPrime(IntPtr container);
+        [DllImport("HypnoFireComs")]
         public static extern int sendPulse(IntPtr container, int universe, int layer, int key, int color, int fadeInTicks, int durationTicks, int fadeOutTicks);
+        [DllImport("HypnoFireComs")]
+        public static extern int sendReset(IntPtr container);
+        [DllImport("HypnoFireComs")]
+        public static extern int sendLayerConfiguration(IntPtr container, int layer, LayerBrush layerBrush);
     }
     
     class Program
@@ -35,12 +50,22 @@ namespace HynoFireComs
                 return;
             }
 
+            HypnoFireComsInvoke.sendPrime(container);
+            HypnoFireComsInvoke.sendReset(container);
+            
             var flip = true;
             while (true)
             {
                 flip = !flip;
-                HypnoFireComsInvoke.sendPulse(container, 0, 0, 0, flip ? DarkBlue : DarkRed, 20, 0, 0);
-                Thread.Sleep(1000);
+                if (HypnoFireComsInvoke.sendPulse(container, 0, 0, 0, flip ? DarkBlue : DarkRed, 0, 20, 30) != 0)
+                {
+                    Console.WriteLine("Couldn't send pulse..");
+                }
+                else
+                {
+                    Console.WriteLine("Sent!");
+                }
+                Thread.Sleep(3000);
             }
 
             HypnoFireComsInvoke.destroySession(container);

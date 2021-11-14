@@ -9,10 +9,23 @@
 PB_BIND(HypnoMessage, HypnoMessage, AUTO)
 
 
+PB_BIND(Prime, Prime, AUTO)
+
+
 PB_BIND(Reset, Reset, AUTO)
 
 
+PB_BIND(Universe, Universe, AUTO)
+
+
+PB_BIND(UniverseConfiguration, UniverseConfiguration, AUTO)
+
+
+PB_BIND(LayerConfiguration, LayerConfiguration, AUTO)
+
+
 PB_BIND(Pulse, Pulse, AUTO)
+
 
 
 

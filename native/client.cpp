@@ -12,7 +12,8 @@ int sendMessage(SessionContainer* container, HypnoMessage* message);
 
 extern "C" {
 
-int createSerialSession(const char* devicePath, unsigned int baudrate, SessionContainer** _container) {
+int createSerialSession(const char* devicePath, unsigned int baudrate, SessionContainer** _container)
+{
     SessionContainer* container = new SessionContainer();
 
 
@@ -37,15 +38,26 @@ int createSerialSession(const char* devicePath, unsigned int baudrate, SessionCo
     return 0;
 }
 
-void destroySession(SessionContainer* container) {
+void destroySession(SessionContainer* container)
+{
     check(sp_close(container->port));
     sp_free_port(container->port);
     delete container;
 }
 
-int sendPulse(SessionContainer* container, int universe, int layer, int key, int color, int fadeInTicks, int durationTicks, int fadeOutTicks) {
-    HypnoMessage message = HypnoMessage_init_zero;
-    Pulse pulse = Pulse_init_zero;
+int sendPrime(SessionContainer* container)
+{
+    HypnoMessage message = HypnoMessage_init_default;
+    message.which_message = HypnoMessage_prime_tag;
+    message.message.prime = Prime_init_default;
+
+    return sendMessage(container, &message);
+}
+
+int sendPulse(SessionContainer* container, int universe, int layer, int key, int color, int fadeInTicks, int durationTicks, int fadeOutTicks)
+{
+    HypnoMessage message = HypnoMessage_init_default;
+    Pulse pulse = Pulse_init_default;
 
     pulse.universe = universe;
     pulse.layer = layer;
@@ -63,10 +75,23 @@ int sendPulse(SessionContainer* container, int universe, int layer, int key, int
 
 int sendReset(SessionContainer* container)
 {
-    HypnoMessage message = HypnoMessage_init_zero;
-    Reset reset = Reset_init_zero;
+    HypnoMessage message = HypnoMessage_init_default;
+    message.message.reset = Reset_init_default;
     message.which_message = HypnoMessage_reset_tag;
-    message.message.reset = reset;
+
+    return sendMessage(container, &message);
+}
+
+int sendLayerConfiguration(SessionContainer* container, int layer, int layerBrush)
+{
+    HypnoMessage message = HypnoMessage_init_default;
+    message.which_message = HypnoMessage_layer_configuration_tag;
+
+    LayerConfiguration layerConfiguration = LayerConfiguration_init_default;
+    layerConfiguration.has_layer_brush = true;
+    layerConfiguration.layer_brush = (LayerBrush)layerBrush;
+    layerConfiguration.layer_number = layer;
+    message.message.layer_configuration = layerConfiguration;
 
     return sendMessage(container, &message);
 }
