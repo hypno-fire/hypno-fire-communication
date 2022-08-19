@@ -14,6 +14,7 @@ extern "C" {
 
 int createSerialSession(const char* devicePath, unsigned int baudrate, SessionContainer** _container)
 {
+    printf("sendLayerConfiguration\n");
     SessionContainer* container = new SessionContainer();
 
 
@@ -33,6 +34,12 @@ int createSerialSession(const char* devicePath, unsigned int baudrate, SessionCo
     check(sp_set_stopbits(container->port, 1));
     check(sp_set_flowcontrol(container->port, SP_FLOWCONTROL_NONE));
 
+    uint8_t buffer[0];
+    buffer[0] = 0;
+    if(check(sp_blocking_write(container->port, buffer, 1, 1000)) <= SP_OK) {
+        return -1;
+    }
+
     *_container = container;
 
     return 0;
@@ -40,6 +47,7 @@ int createSerialSession(const char* devicePath, unsigned int baudrate, SessionCo
 
 void destroySession(SessionContainer* container)
 {
+    printf("destroySession\n");
     check(sp_close(container->port));
     sp_free_port(container->port);
     delete container;
@@ -47,6 +55,7 @@ void destroySession(SessionContainer* container)
 
 int sendPrime(SessionContainer* container)
 {
+    printf("sendPrime\n");
     HypnoMessage message = HypnoMessage_init_default;
     message.which_message = HypnoMessage_prime_tag;
     message.message.prime = Prime_init_default;
@@ -56,6 +65,7 @@ int sendPrime(SessionContainer* container)
 
 int sendPulse(SessionContainer* container, int universe, int layer, int key, int color, int fadeInTicks, int durationTicks, int fadeOutTicks)
 {
+    printf("sendPulse\n");
     HypnoMessage message = HypnoMessage_init_default;
     Pulse pulse = Pulse_init_default;
 
@@ -75,6 +85,7 @@ int sendPulse(SessionContainer* container, int universe, int layer, int key, int
 
 int sendReset(SessionContainer* container)
 {
+    printf("sendReset\n");
     HypnoMessage message = HypnoMessage_init_default;
     message.message.reset = Reset_init_default;
     message.which_message = HypnoMessage_reset_tag;
@@ -84,6 +95,7 @@ int sendReset(SessionContainer* container)
 
 int sendLayerConfiguration(SessionContainer* container, int layer, int layerBrush)
 {
+    printf("sendLayerConfiguration\n");
     HypnoMessage message = HypnoMessage_init_default;
     message.which_message = HypnoMessage_layer_configuration_tag;
 
@@ -134,6 +146,19 @@ int sendMessage(SessionContainer* container, HypnoMessage* message)
 
     uint8_t encodedBuffer[COBS::getEncodedBufferSize(stream.bytes_written)];
     size_t numEncoded = COBS::encode(buffer, stream.bytes_written, encodedBuffer);
+    encodedBuffer[numEncoded] = 0;
+
+    printf("COBS packet: %d\n", numEncoded);
+    for(int x = 0; x < (numEncoded); x++) {
+        char strBuf[50];
+        sprintf(strBuf, "%02X", encodedBuffer[x]);
+        printf(strBuf);
+    }
+    printf("\n");
+
+    uint8_t decodedBuffer[numEncoded];
+    size_t numDecoded = COBS::decode(encodedBuffer, numEncoded, decodedBuffer);
+    printf("number decoded: %d\n", numDecoded);
 
     if(check(sp_blocking_write(container->port, encodedBuffer, numEncoded, 1000)) < 0) {
         return -1;

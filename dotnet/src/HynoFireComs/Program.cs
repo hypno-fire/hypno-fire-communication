@@ -49,15 +49,34 @@ namespace HynoFireComs
                 Console.WriteLine("Couldn't open device...");
                 return;
             }
-
+            
+            for (int x = 0; x < 10000; x++)
+            {
+                HypnoFireComsInvoke.sendPrime(container);
+                //HypnoFireComsInvoke.sendReset(container);
+                HypnoFireComsInvoke.sendPulse(container, 0, 0, 0, DarkBlue, 0, 2, 0);
+                Thread.Sleep(50);
+                HypnoFireComsInvoke.sendPulse(container, 0, 0, 0, DarkBlue, 0, 2, 0);
+                Thread.Sleep(50);
+                HypnoFireComsInvoke.sendPulse(container, 0, 0, 0, DarkBlue, 0, 2, 0);
+                Thread.Sleep(50);
+                HypnoFireComsInvoke.sendPulse(container, 0, 0, 0, DarkBlue, 0, 2, 0);
+                Thread.Sleep(1000);
+            }
+            
+            return;
+            
             HypnoFireComsInvoke.sendPrime(container);
             HypnoFireComsInvoke.sendReset(container);
+            
+            Console.WriteLine("Waiting for reset..");
+            Thread.Sleep(2000);
             
             var flip = true;
             while (true)
             {
                 flip = !flip;
-                if (HypnoFireComsInvoke.sendPulse(container, 0, 0, 0, flip ? DarkBlue : DarkRed, 0, 20, 30) != 0)
+                if (HypnoFireComsInvoke.sendPulse(container, 0, 0, 0, flip ? DarkBlue : DarkRed, 0, 3, 10) != 0)
                 {
                     Console.WriteLine("Couldn't send pulse..");
                 }
@@ -65,7 +84,7 @@ namespace HynoFireComs
                 {
                     Console.WriteLine("Sent!");
                 }
-                Thread.Sleep(3000);
+                Thread.Sleep(1000);
             }
 
             HypnoFireComsInvoke.destroySession(container);
