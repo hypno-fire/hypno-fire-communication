@@ -6,4 +6,5 @@ private:
     int _key;
 public:
     hypnoPattern(int key);
+    int key();
 };
