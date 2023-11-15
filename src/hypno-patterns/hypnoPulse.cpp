@@ -1,11 +1,18 @@
 #include "hypnoPulse.h"
 
-hypnoPulse::hypnoPulse(int key, int fadeInTicks, int durationTicks, int fadeOutTicks)
-    : hypnoPattern(key),
-    _fadeInTicks(fadeInTicks),
-    _durationTicks(durationTicks),
-    _fadeOutTicks(fadeOutTicks)
+hypnoPulse::hypnoPulse()
+    : hypnoPattern()
 {
+
+}
+
+void hypnoPulse::fire(int fadeInTicks, int durationTicks, int fadeOutTicks)
+{
+    _currentTick = 0;
+    _fadeInTicks = fadeInTicks,
+    _durationTicks = durationTicks,
+    _fadeOutTicks = fadeOutTicks;
+
     _fadeInStop = _fadeInTicks;
     _durationStop = _fadeInStop + _durationTicks;
     _fadeOutStop = _durationStop + _fadeOutTicks;
@@ -16,6 +23,8 @@ hypnoPulse::hypnoPulse(int key, int fadeInTicks, int durationTicks, int fadeOutT
     if(_fadeOutTicks > 0) {
         _fadeOutFactor = 1.0 / (_fadeOutTicks + 1); 
     }
+
+    this->activate();
 }
 
 void hypnoPulse::draw()

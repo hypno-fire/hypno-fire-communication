@@ -3,8 +3,8 @@
 
 #include "hypno-patterns/hypnoPattern.h"
 
-class hypnoPulse : public hypnoPattern {
-
+class hypnoPulse : public hypnoPattern
+{
 private:
     int _fadeInTicks = 0;
     int _durationTicks = 5;
@@ -20,7 +20,8 @@ private:
     int _fadeOutStep = 0;
 
 public:
-    hypnoPulse(int key, int fadeInTicks, int durationTicks, int fadeOutTicks);
+    hypnoPulse();
+    void fire(int fadeInTicks, int durationTicks, int fadeOutTicks);
     void draw();
 };
 
