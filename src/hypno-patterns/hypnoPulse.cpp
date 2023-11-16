@@ -1,17 +1,26 @@
 #include "hypnoPulse.h"
 
+double easeOutExpo(double x) {
+    return x == 1 ? 1 : 1 - pow(2, -10 * x);
+}
+
+double easeInExpo(double x) {
+    return x == 0 ? 0 : pow(2, 10 * x - 10);
+}
+
 hypnoPulse::hypnoPulse()
     : hypnoPattern()
 {
 
 }
 
-void hypnoPulse::fire(int fadeInTicks, int durationTicks, int fadeOutTicks)
+void hypnoPulse::fire(int fadeInTicks, int durationTicks, int fadeOutTicks, int colorIntensity)
 {
     _currentTick = 0;
     _fadeInTicks = fadeInTicks,
     _durationTicks = durationTicks,
     _fadeOutTicks = fadeOutTicks;
+    _colorIntensity = colorIntensity;
 
     _fadeInStop = _fadeInTicks;
     _durationStop = _fadeInStop + _durationTicks;
@@ -24,23 +33,38 @@ void hypnoPulse::fire(int fadeInTicks, int durationTicks, int fadeOutTicks)
         _fadeOutFactor = 1.0 / (_fadeOutTicks + 1); 
     }
 
-    this->activate();
+    _stopTrigger = false;
+    activate();
 }
 
 void hypnoPulse::draw()
 {
+    if(_stopTrigger)
+    {
+        fill_solid(_targetLeds, _numLeds, CRGB::Black);
+        _stopTrigger = false;
+        deactivate();
+        return;
+    }
+
     CRGB color = _getColor();
+    color = color.fadeToBlackBy(255 - _colorIntensity);
+
     if (_currentTick < _fadeInStop)
     {
         int step = (_currentTick + 1);
-        int value = _fadeInFactor * step * 255;
+        double progress = _fadeInFactor * step;
+        progress = easeOutExpo(progress);
+        int value = progress * 255;
         color = color.fadeToBlackBy(255 - value);
     } else if (_currentTick < _durationStop)
     {
         
     } else if (_currentTick < _fadeOutStop) {
         int step = (_fadeOutStop - _currentTick);
-        int value = _fadeOutFactor * step * 255;
+        double progress = _fadeOutFactor * step;
+        progress = easeInExpo(progress);
+        int value = progress * 255;
         color = color.fadeToBlackBy(255 - value);
     } else {
         deactivate();
@@ -55,4 +79,9 @@ void hypnoPulse::draw()
     }
     
     _currentTick++;
+}
+
+void hypnoPulse::stop()
+{
+    _stopTrigger = true;
 }

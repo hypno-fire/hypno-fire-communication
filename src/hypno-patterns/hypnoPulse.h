@@ -9,6 +9,7 @@ private:
     int _fadeInTicks = 0;
     int _durationTicks = 5;
     int _fadeOutTicks = 0;
+    int _colorIntensity = 255;
     int _currentTick = 0;
     int _fadeInStop = 0;
     int _durationStop = 0;
@@ -19,10 +20,13 @@ private:
     double _fadeOutFactor = 0.0;
     int _fadeOutStep = 0;
 
+    bool _stopTrigger = false;
+
 public:
     hypnoPulse();
-    void fire(int fadeInTicks, int durationTicks, int fadeOutTicks);
+    void fire(int fadeInTicks, int durationTicks, int fadeOutTicks, int colorIntensity);
     void draw();
+    void stop();
 };
 
 #endif
